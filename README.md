@@ -16,6 +16,16 @@ A simple Countdown Timer web application built using HTML, CSS, and JavaScript. 
 
 To run the Countdown Timer, you need a modern web browser that supports HTML, CSS, and JavaScript.
 
+## Customize
+
+You can customize the appearance of the timer by modifying the `style.css` file. Feel free to change the colors, font styles, and layout to match your desired design.
+
+You can also replace the "alarm.mp3" file with your preferred alarm sound. Make sure to update the `src` attribute of the `<audio>` element in the `index.html` file.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ### Installing
 
 1. Clone the repository:
