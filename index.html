@@ -234,12 +234,19 @@
         }, 1000);
         startButton.classList.add('hidden');
         restartButton.classList.remove('hidden');
+        pauseButton.innerHTML = 'Pause';
       });
 
       pauseButton.addEventListener('click', function() {
-        clearInterval(timer);
-        isPaused = true;
-        remainingTime = totalTime;
+        if (isPaused) {
+          startButton.click();
+          pauseButton.innerHTML = 'Pause';
+        } else {
+          clearInterval(timer);
+          isPaused = true;
+          remainingTime = totalTime;
+          pauseButton.innerHTML = 'Resume';
+        }
       });
 
       resetButton.addEventListener('click', function() {
@@ -253,6 +260,7 @@
         countdownElement.classList.remove('warning');
         startButton.classList.remove('hidden');
         restartButton.classList.add('hidden');
+        pauseButton.innerHTML = 'Pause';
       });
 
       restartButton.addEventListener('click', function() {
