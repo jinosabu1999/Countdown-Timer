@@ -52,7 +52,7 @@ enhanced-countdown-timer/
 
 ## License 📜
 
-This project is licensed under the MIT License. See the `LICENSE` file for more information.
+This project is licensed under the MIT License. See the [MIT LICENCE](LICENCE) file for more information.
 
 ## Contributions 🤝
 
