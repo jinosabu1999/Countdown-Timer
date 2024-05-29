@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Countdown Timer</title>
+  <title>Enhanced Countdown Timer</title>
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap">
   <style>
     body {
@@ -13,10 +13,13 @@
       align-items: center;
       height: 100vh;
       padding: 20px;
+      margin: 0;
     }
 
     .container {
       text-align: center;
+      width: 100%;
+      max-width: 500px;
     }
 
     .countdown-box {
@@ -25,8 +28,6 @@
       padding: 20px;
       background-color: #ffde20;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      max-width: 400px;
-      margin: 0 auto;
     }
 
     h1 {
@@ -40,7 +41,7 @@
       flex-wrap: wrap;
       justify-content: center;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
 
     input[type="number"]::-webkit-inner-spin-button,
@@ -63,7 +64,7 @@
     }
 
     input[type="number"] {
-      width: 40px;
+      width: 60px;
       padding: 5px;
       font-size: 16px;
       border: none;
@@ -84,6 +85,7 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
       border-radius: 5px;
+      margin: 5px;
     }
 
     .btn:hover {
@@ -93,19 +95,39 @@
     #countdown {
       font-size: 48px;
       color: #333;
-      margin-top: 40px;
-      animation: countdownAnimation 1s linear infinite;
+      margin-top: 20px;
     }
 
-    #countdown.time-up {
-      font-size: 32px;
+    #countdown.warning {
+      color: #e41010;
+      font-size: 48px;
+      font-weight: bold;
+    }
+
+    #progress-bar-container {
+      width: 100%;
+      background-color: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    #progress-bar {
+      height: 30px;
+      background-color: #ff009d;
+      width: 0;
+      transition: width 1s linear;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="countdown-box">
-      <h1>Countdown Timer</h1>
+      <h1>Enhanced Countdown Timer</h1>
       <div class="timer">
         <div class="input-container">
           <label for="hours"><i class="far fa-clock"></i> Hours:</label>
@@ -122,9 +144,15 @@
       </div>
       <div class="button-container">
         <button id="start-btn" class="btn">Start</button>
-        <button id="stop-btn" class="btn">Stop</button>
+        <button id="pause-btn" class="btn">Pause</button>
+        <button id="reset-btn" class="btn">Reset</button>
+        <button id="restart-btn" class="btn hidden">Restart</button>
+        <button id="stop-alarm-btn" class="btn hidden">Stop Alarm</button>
       </div>
       <div id="countdown"></div>
+      <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+      </div>
       <audio id="alarm" src="alarm.mp3"></audio>
     </div>
   </div>
@@ -133,9 +161,17 @@
     window.addEventListener('DOMContentLoaded', function() {
       var countdownElement = document.getElementById('countdown');
       var startButton = document.getElementById('start-btn');
-      var stopButton = document.getElementById('stop-btn');
+      var pauseButton = document.getElementById('pause-btn');
+      var resetButton = document.getElementById('reset-btn');
+      var restartButton = document.getElementById('restart-btn');
+      var stopAlarmButton = document.getElementById('stop-alarm-btn');
       var alarmSound = document.getElementById('alarm');
+      var progressBar = document.getElementById('progress-bar');
       var timer;
+      var totalTime;
+      var isPaused = false;
+      var remainingTime;
+      var initialTime;
 
       function playAlarm() {
         alarmSound.play();
@@ -144,38 +180,100 @@
       function stopAlarm() {
         alarmSound.pause();
         alarmSound.currentTime = 0;
+        stopAlarmButton.classList.add('hidden');
+      }
+
+      function updateCountdown() {
+        var hoursLeft = Math.floor(totalTime / 3600);
+        var minutesLeft = Math.floor((totalTime % 3600) / 60);
+        var secondsLeft = Math.floor(totalTime % 60);
+
+        countdownElement.innerHTML = hoursLeft.toString().padStart(2, '0') + ':' +
+                                      minutesLeft.toString().padStart(2, '0') + ':' +
+                                      secondsLeft.toString().padStart(2, '0');
+
+        if (totalTime < 10) {
+          countdownElement.classList.add('warning');
+        } else {
+          countdownElement.classList.remove('warning');
+        }
+
+        var progressPercentage = ((initialTime - totalTime) / initialTime) * 100;
+        progressBar.style.width = progressPercentage + '%';
       }
 
       startButton.addEventListener('click', function() {
-        var hours = parseInt(document.getElementById('hours').value);
-        var minutes = parseInt(document.getElementById('minutes').value);
-        var seconds = parseInt(document.getElementById('seconds').value);
+        if (!isPaused) {
+          var hours = parseInt(document.getElementById('hours').value);
+          var minutes = parseInt(document.getElementById('minutes').value);
+          var seconds = parseInt(document.getElementById('seconds').value);
 
-        var totalTime = (hours * 3600) + (minutes * 60) + seconds;
+          if (hours < 0 || minutes < 0 || seconds < 0) {
+            alert("Please enter positive values only.");
+            return;
+          }
+
+          totalTime = (hours * 3600) + (minutes * 60) + seconds;
+          initialTime = totalTime;
+        } else {
+          totalTime = remainingTime;
+          isPaused = false;
+        }
 
         timer = setInterval(function() {
-          var hoursLeft = Math.floor(totalTime / 3600);
-          var minutesLeft = Math.floor((totalTime % 3600) / 60);
-          var secondsLeft = Math.floor(totalTime % 60);
-
-          countdownElement.innerHTML = hoursLeft.toString().padStart(2, '0') + ':' +
-                                        minutesLeft.toString().padStart(2, '0') + ':' +
-                                        secondsLeft.toString().padStart(2, '0');
-
+          updateCountdown();
           totalTime--;
 
           if (totalTime < 0) {
             clearInterval(timer);
             countdownElement.innerHTML = 'Time is up!';
+            countdownElement.classList.add('warning');
             playAlarm();
+            stopAlarmButton.classList.remove('hidden');
           }
         }, 1000);
+        startButton.classList.add('hidden');
+        restartButton.classList.remove('hidden');
       });
 
-      stopButton.addEventListener('click', function() {
+      pauseButton.addEventListener('click', function() {
+        clearInterval(timer);
+        isPaused = true;
+        remainingTime = totalTime;
+      });
+
+      resetButton.addEventListener('click', function() {
         clearInterval(timer);
         countdownElement.innerHTML = '';
+        totalTime = 0;
+        remainingTime = 0;
+        isPaused = false;
         stopAlarm();
+        progressBar.style.width = '0';
+        countdownElement.classList.remove('warning');
+        startButton.classList.remove('hidden');
+        restartButton.classList.add('hidden');
+      });
+
+      restartButton.addEventListener('click', function() {
+        clearInterval(timer);
+        totalTime = initialTime;
+        isPaused = false;
+        startButton.click();
+      });
+
+      stopAlarmButton.addEventListener('click', function() {
+        stopAlarm();
+      });
+
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+          startButton.click();
+        } else if (event.key === ' ') {
+          pauseButton.click();
+        } else if (event.key === 'r') {
+          resetButton.click();
+        }
       });
     });
   </script>
