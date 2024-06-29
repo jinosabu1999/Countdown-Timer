@@ -1,4 +1,4 @@
-# Enhanced Countdown Timer ⏳
+# Countdown Timer ⏳
 
 Welcome to the Enhanced Countdown Timer! This project provides a stylish and functional countdown timer that you can customize to fit your needs. Here's a quick guide to get you started:
 
