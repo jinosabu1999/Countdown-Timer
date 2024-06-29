@@ -1,79 +1,91 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Countdown Timer</title>
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Countdown Timer</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      font-family: 'Roboto', sans-serif;
+      font-family: 'Arial', sans-serif;
       background-color: #161B33;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       padding: 20px;
-      margin: 0;
     }
 
     .container {
-      text-align: center;
       width: 100%;
       max-width: 500px;
     }
 
     .countdown-box {
       border: 5px solid #ff0;
-      border-radius: 10px;
+      border-radius: 15px;
       padding: 20px;
       background-color: #0D0C1D;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
     }
 
     h1 {
       color: #e41010;
-      font-size: 30px;
+      font-size: 28px;
       margin-bottom: 20px;
+      text-align: center;
     }
 
     .timer {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      align-items: center;
+      gap: 10px;
       margin-bottom: 20px;
-    }
-
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
     }
 
     .input-container {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      margin-right: 10px;
-      margin-bottom: 10px;
     }
 
     label {
-      margin-right: 5px;
       color: white;
-      font-weight: 1000;
+      font-weight: bold;
+      margin-bottom: 5px;
     }
 
     input[type="number"] {
-      width: 60px;
-      padding: 5px;
+      width: 70px;
+      padding: 8px;
       font-size: 16px;
-      border: none;
-      background-color: transparent;
+      background-color: rgba(255, 255, 255, 0.1);
       color: white;
       text-align: center;
-      border: 3px solid cyan;
+      border: 2px solid cyan;
       border-radius: 5px;
-      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #ff0;
+      box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+    }
+
+    .button-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
     .btn {
@@ -83,25 +95,36 @@
       padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
-      border-radius: 12px;
-      margin: 5px;
+      transition: all 0.3s ease;
+      border-radius: 25px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .btn:hover {
       background-color: #0056b3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
     }
 
     #countdown {
       font-size: 48px;
       color: #FF0F80;
       margin-top: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
     }
 
     #countdown.warning {
       color: #e41010;
-      font-size: 48px;
       font-weight: bold;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
     }
 
     #progress-bar-container {
@@ -113,7 +136,7 @@
     }
 
     #progress-bar {
-      height: 30px;
+      height: 20px;
       background-color: #109648;
       width: 0;
       transition: width 1s linear;
@@ -122,40 +145,107 @@
     .hidden {
       display: none;
     }
+
+    #theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: #e41010;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    body.light-theme {
+      background-color: #f0f0f0;
+    }
+
+    .light-theme .countdown-box {
+      background-color: #ffffff;
+      border-color: #007bff;
+    }
+
+    .light-theme h1 {
+      color: #007bff;
+    }
+
+    .light-theme label {
+      color: #333;
+    }
+
+    .light-theme input[type="number"] {
+      background-color: #f0f0f0;
+      color: #333;
+      border-color: #007bff;
+    }
+
+    .light-theme #countdown {
+      color: #007bff;
+    }
+
+    .light-theme #countdown.warning {
+      color: #e41010;
+    }
+
+    @media (max-width: 480px) {
+      .countdown-box {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      input[type="number"] {
+        width: 60px;
+        font-size: 14px;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+
+      #countdown {
+        font-size: 36px;
+      }
+    }
   </style>
 </head>
 <body>
+  <button id="theme-toggle"><i class="fas fa-sun"></i></button>
   <div class="container">
     <div class="countdown-box">
-      <h1>Countdown Timer</h1>
+      <h1>Enhanced Countdown Timer</h1>
       <div class="timer">
         <div class="input-container">
-          <label for="hours"><i class="far fa-clock"></i> Hours:</label>
+          <label for="hours"><i class="far fa-clock"></i> Hours</label>
           <input id="hours" type="number" min="0" max="99" value="0">
         </div>
         <div class="input-container">
-          <label for="minutes"><i class="far fa-clock"></i> Minutes:</label>
+          <label for="minutes"><i class="far fa-clock"></i> Minutes</label>
           <input id="minutes" type="number" min="0" max="59" value="0">
         </div>
         <div class="input-container">
-          <label for="seconds"><i class="far fa-clock"></i> Seconds:</label>
+          <label for="seconds"><i class="far fa-clock"></i> Seconds</label>
           <input id="seconds" type="number" min="0" max="59" value="0">
         </div>
       </div>
       <div class="button-container">
-        <button id="start-btn" class="btn">Start</button>
-        <button id="pause-btn" class="btn">Pause</button>
-        <button id="reset-btn" class="btn">Reset</button>
-        <button id="restart-btn" class="btn hidden">Restart</button>
-        <button id="stop-alarm-btn" class="btn hidden">Stop Alarm</button>
+        <button id="start-btn" class="btn"><i class="fas fa-play"></i> Start</button>
+        <button id="pause-btn" class="btn"><i class="fas fa-pause"></i> Pause</button>
+        <button id="reset-btn" class="btn"><i class="fas fa-undo"></i> Reset</button>
+        <button id="restart-btn" class="btn hidden"><i class="fas fa-redo"></i> Restart</button>
+        <button id="stop-alarm-btn" class="btn hidden"><i class="fas fa-volume-mute"></i> Stop Alarm</button>
       </div>
       <div id="countdown"></div>
       <div id="progress-bar-container">
         <div id="progress-bar"></div>
       </div>
-      <audio id="alarm" src="alarm.mp3"></audio>
     </div>
   </div>
+  <audio id="alarm" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
   <script>
     window.addEventListener('DOMContentLoaded', function() {
@@ -167,6 +257,7 @@
       var stopAlarmButton = document.getElementById('stop-alarm-btn');
       var alarmSound = document.getElementById('alarm');
       var progressBar = document.getElementById('progress-bar');
+      var themeToggle = document.getElementById('theme-toggle');
       var timer;
       var totalTime;
       var isPaused = false;
@@ -200,6 +291,8 @@
 
         var progressPercentage = ((initialTime - totalTime) / initialTime) * 100;
         progressBar.style.width = progressPercentage + '%';
+
+        document.title = countdownElement.innerHTML + ' - Countdown Timer';
       }
 
       startButton.addEventListener('click', function() {
@@ -208,8 +301,8 @@
           var minutes = parseInt(document.getElementById('minutes').value);
           var seconds = parseInt(document.getElementById('seconds').value);
 
-          if (hours < 0 || minutes < 0 || seconds < 0) {
-            alert("Please enter positive values only.");
+          if (isNaN(hours) || isNaN(minutes) || isNaN(seconds) || hours < 0 || minutes < 0 || seconds < 0) {
+            alert("Please enter valid positive values.");
             return;
           }
 
@@ -234,18 +327,18 @@
         }, 1000);
         startButton.classList.add('hidden');
         restartButton.classList.remove('hidden');
-        pauseButton.innerHTML = 'Pause';
+        pauseButton.innerHTML = '<i class="fas fa-pause"></i> Pause';
       });
 
       pauseButton.addEventListener('click', function() {
         if (isPaused) {
           startButton.click();
-          pauseButton.innerHTML = 'Pause';
+          pauseButton.innerHTML = '<i class="fas fa-pause"></i> Pause';
         } else {
           clearInterval(timer);
           isPaused = true;
           remainingTime = totalTime;
-          pauseButton.innerHTML = 'Resume';
+          pauseButton.innerHTML = '<i class="fas fa-play"></i> Resume';
         }
       });
 
@@ -260,7 +353,8 @@
         countdownElement.classList.remove('warning');
         startButton.classList.remove('hidden');
         restartButton.classList.add('hidden');
-        pauseButton.innerHTML = 'Pause';
+        pauseButton.innerHTML = '<i class="fas fa-pause"></i> Pause';
+        document.title = 'Countdown Timer';
       });
 
       restartButton.addEventListener('click', function() {
@@ -272,6 +366,12 @@
 
       stopAlarmButton.addEventListener('click', function() {
         stopAlarm();
+      });
+
+      themeToggle.addEventListener('click', function() {
+        document.body.classList.toggle('light-theme');
+        themeToggle.innerHTML = document.body.classList.contains('light-theme') ? 
+          '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
       });
 
       document.addEventListener('keydown', function(event) {
