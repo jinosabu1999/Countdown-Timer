@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Timer</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #09090b;
+      --glass-bg: rgba(24, 24, 27, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --text-main: #ffffff;
+      --text-muted: #a1a1aa;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.5);
+      --danger: #ef4444;
+      --success: #10b981;
+      --ring-bg: rgba(255, 255, 255, 0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Ambient Animated Background */
+    .ambient-bg {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      overflow: hidden;
+      background: var(--bg-dark);
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.5;
+      animation: float 20s infinite ease-in-out alternate;
+    }
+    .orb-1 { width: 400px; height: 400px; background: #4f46e5; top: -10%; left: -10%; }
+    .orb-2 { width: 300px; height: 300px; background: #c026d3; bottom: -10%; right: -5%; animation-delay: -5s; }
+    .orb-3 { width: 350px; height: 350px; background: #0ea5e9; top: 40%; left: 60%; animation-delay: -10s; }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 50px) scale(1.2); }
+    }
+
+    /* Premium Glass Container */
+    .app-container {
+      position: relative;
+      z-index: 10;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: 32px;
+      padding: 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Top Navigation */
+    .top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .top-bar h1 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .icon-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Timer Display Area */
+    .timer-ring-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    svg.progress-ring {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      transform: rotate(-90deg);
+      filter: drop-shadow(0 0 15px var(--accent-glow));
+    }
+
+    .ring-bg {
+      fill: none;
+      stroke: var(--ring-bg);
+      stroke-width: 8;
+    }
+
+    .ring-progress {
+      fill: none;
+      stroke: url(#gradient);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.1s linear, stroke 0.4s ease;
+    }
+
+    /* The Editable Time Display */
+    .time-display {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 56px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -2px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      z-index: 20;
+      transition: transform 0.2s, color 0.3s;
+    }
+    
+    .time-display:hover.idle {
+      transform: scale(1.05);
+      color: var(--accent);
+    }
+
+    .time-labels {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 1px;
+      position: absolute;
+      bottom: 70px;
+    }
+
+    /* Hidden Input for Mobile Keyboard */
+    #hidden-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Quick Actions */
+    .quick-adds {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: all 0.4s ease;
+      position: absolute;
+    }
+    .quick-adds.active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+      position: relative;
+    }
+    .quick-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .quick-btn:hover { background: rgba(255, 255, 255, 0.15); }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .btn-main {
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      color: white;
+      border: none;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 10px 25px var(--accent-glow);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-main:hover {
+      transform: scale(1.1);
+      box-shadow: 0 15px 35px var(--accent-glow);
+    }
+    .btn-main:active { transform: scale(0.95); }
+
+    .btn-main.stop-pulse {
+      background: linear-gradient(135deg, var(--danger), #f43f5e);
+      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+      animation: pulse-danger 1.5s infinite;
+    }
+
+    @keyframes pulse-danger {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      font-size: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Settings Panel */
+    .settings-panel {
+      position: absolute;
+      bottom: -100%;
+      left: 0;
+      width: 100%;
+      background: rgba(24, 24, 27, 0.95);
+      backdrop-filter: blur(30px);
+      border-top: 1px solid var(--glass-border);
+      border-radius: 32px 32px 0 0;
+      padding: 30px;
+      transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .settings-panel.open { bottom: 0; }
+    .settings-header { display: flex; justify-content: space-between; align-items: center; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; }
+    
+    select, input[type="range"] {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 8px 12px;
+      border-radius: 8px;
+      outline: none;
+      font-family: inherit;
+    }
+    
+    .hidden { display: none !important; }
+
+    /* PiP Canvas (Hidden visually, used for PiP stream) */
+    canvas { display: none; }
+
+    @media (max-width: 480px) {
+      .app-container {
+        border-radius: 0;
+        min-height: 100vh;
+        border: none;
+        justify-content: center;
+      }
+      .time-display { font-size: 50px; }
+      .timer-ring-container { width: 260px; height: 260px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Animated Background -->
+  <div class="ambient-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="app-container">
+    <div class="top-bar">
+      <button class="icon-btn" id="settings-btn" title="Settings"><i class="fas fa-sliders-h"></i></button>
+      <h1>Timer</h1>
+      <button class="icon-btn" id="pip-btn" title="Picture in Picture"><i class="fas fa-external-link-alt"></i></button>
+    </div>
+
+    <div class="timer-ring-container">
+      <svg class="progress-ring" viewBox="0 0 300 300">
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6366f1" />
+            <stop offset="100%" stop-color="#c026d3" />
+          </linearGradient>
+          <linearGradient id="gradient-warning" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ef4444" />
+            <stop offset="100%" stop-color="#f59e0b" />
+          </linearGradient>
+        </defs>
+        <circle class="ring-bg" cx="150" cy="150" r="140"></circle>
+        <circle id="ring-progress" class="ring-progress" cx="150" cy="150" r="140"></circle>
+      </svg>
+
+      <div class="time-labels">
+        <span>Hr</span><span>Min</span><span>Sec</span>
+      </div>
+
+      <!-- Microwave style input -->
+      <div id="time-display" class="time-display idle" title="Click to edit">00:00:00</div>
+      <input type="tel" id="hidden-input" inputmode="numeric" maxlength="6">
+    </div>
+
+    <!-- Quick Add (Visible only when running) -->
+    <div class="quick-adds" id="quick-adds">
+      <button class="quick-btn" onclick="addTime(60)">+1 Min</button>
+      <button class="quick-btn" onclick="addTime(300)">+5 Min</button>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button id="reset-btn" class="btn-secondary hidden"><i class="fas fa-stop"></i></button>
+      <button id="main-btn" class="btn-main"><i class="fas fa-play"></i></button>
+    </div>
+
+    <!-- Settings Slide-up -->
+    <div class="settings-panel" id="settings-panel">
+      <div class="settings-header">
+        <h3>Settings</h3>
+        <button class="icon-btn" id="close-settings"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="setting-row">
+        <span>Sound</span>
+        <select id="sound-select">
+          <option value="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3">Digital Alarm</option>
+          <option value="https://assets.mixkit.co/active_storage/sfx/2864/2864-preview.mp3">Gentle Chime</option>
+          <option value="https://assets.mixkit.co/active_storage/sfx/1003/1003-preview.mp3">Bell</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <span>Volume</span>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1">
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden elements for PiP and Audio -->
+  <audio id="alarm-audio" loop preload="auto"></audio>
+  <canvas id="pip-canvas" width="400" height="400"></canvas>
+  <video id="pip-video" muted playsinline style="display: none;"></video>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Elements
+      const timeDisplay = document.getElementById('time-display');
+      const hiddenInput = document.getElementById('hidden-input');
+      const mainBtn = document.getElementById('main-btn');
+      const resetBtn = document.getElementById('reset-btn');
+      const quickAdds = document.getElementById('quick-adds');
+      const ringProgress = document.getElementById('ring-progress');
+      const audio = document.getElementById('alarm-audio');
+      
+      // Settings Elements
+      const settingsPanel = document.getElementById('settings-panel');
+      const settingsBtn = document.getElementById('settings-btn');
+      const closeSettings = document.getElementById('close-settings');
+      const soundSelect = document.getElementById('sound-select');
+      const volumeSlider = document.getElementById('volume-slider');
+
+      // PiP Elements
+      const pipBtn = document.getElementById('pip-btn');
+      const canvas = document.getElementById('pip-canvas');
+      const ctx = canvas.getContext('2d');
+      const video = document.getElementById('pip-video');
+
+      // Setup Progress Ring SVG
+      const radius = ringProgress.r.baseVal.value;
+      const circumference = radius * 2 * Math.PI;
+      ringProgress.style.strokeDasharray = `${circumference} ${circumference}`;
+      ringProgress.style.strokeDashoffset = 0;
+
+      // State
+      let state = 'IDLE'; // IDLE, RUNNING, PAUSED, RINGING
+      let inputDigits = '000000'; // Represents HHMMSS internally
+      let totalDuration = 0; // in milliseconds
+      let endTime = 0; 
+      let timeRemaining = 0;
+      let animationFrameId = null;
+
+      // Setup Audio
+      audio.src = soundSelect.value;
+      soundSelect.addEventListener('change', (e) => audio.src = e.target.value);
+      volumeSlider.addEventListener('input', (e) => audio.volume = e.target.value);
+
+      // ----- INPUT LOGIC (Microwave Style) -----
+      timeDisplay.addEventListener('click', () => {
+        if (state === 'IDLE') {
+          hiddenInput.focus();
+          // Reset if they click to start typing fresh
+          inputDigits = '000000';
+          updateDisplayFromDigits();
+        }
+      });
+
+      hiddenInput.addEventListener('input', (e) => {
+        if (state !== 'IDLE') return;
+        let val = e.target.value.replace(/[^0-9]/g, ''); // Numbers only
+        // Right align into the 6 digit string
+        inputDigits = ('000000' + val).slice(-6);
+        updateDisplayFromDigits();
+      });
+
+      hiddenInput.addEventListener('blur', () => {
+        hiddenInput.value = ''; // clear hidden input
+      });
+
+      function updateDisplayFromDigits() {
+        const h = inputDigits.slice(0, 2);
+        const m = inputDigits.slice(2, 4);
+        const s = inputDigits.slice(4, 6);
+        timeDisplay.textContent = `${h}:${m}:${s}`;
+        
+        // Convert to milliseconds to prep for start
+        totalDuration = ((parseInt(h) * 3600) + (parseInt(m) * 60) + parseInt(s)) * 1000;
+        timeRemaining = totalDuration;
+      }
+
+      function formatTimeMs(ms) {
+        const totalSecs = Math.ceil(ms / 1000);
+        const h = Math.floor(totalSecs / 3600);
+        const m = Math.floor((totalSecs % 3600) / 60);
+        const s = totalSecs % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }
+
+      function updateRing(percent) {
+        const offset = circumference - (percent / 100) * circumference;
+        ringProgress.style.strokeDashoffset = offset;
+      }
+
+      // ----- CORE TIMER ENGINE -----
+      function tick() {
+        if (state !== 'RUNNING') return;
+
+        const now = Date.now();
+        timeRemaining = Math.max(0, endTime - now);
+        
+        timeDisplay.textContent = formatTimeMs(timeRemaining);
+        document.title = `${formatTimeMs(timeRemaining)} - Timer`;
+
+        // Update Ring
+        const percent = totalDuration > 0 ? (timeRemaining / totalDuration) * 100 : 0;
+        updateRing(percent);
+
+        // Warning color at 10% or < 10 seconds
+        if (timeRemaining <= 10000 || (percent > 0 && percent <= 10)) {
+          ringProgress.style.stroke = "url(#gradient-warning)";
+          timeDisplay.style.color = "var(--danger)";
+        } else {
+          ringProgress.style.stroke = "url(#gradient)";
+          timeDisplay.style.color = "var(--text-main)";
+        }
+
+        // Draw to PiP canvas if active
+        if (document.pictureInPictureElement) drawPiPCanvas(percent, formatTimeMs(timeRemaining));
+
+        if (timeRemaining === 0) {
+          triggerAlarm();
+        } else {
+          animationFrameId = requestAnimationFrame(tick);
+        }
+      }
+
+      function toggleTimer() {
+        if (state === 'IDLE') {
+          if (totalDuration <= 0) return; // Prevent starting 00:00:00
+          state = 'RUNNING';
+          endTime = Date.now() + totalDuration;
+          
+          timeDisplay.classList.remove('idle');
+          quickAdds.classList.add('active');
+          resetBtn.classList.remove('hidden');
+          mainBtn.innerHTML = '<i class="fas fa-pause"></i>';
+          hiddenInput.blur();
+          
+          tick();
+        } 
+        else if (state === 'RUNNING') {
+          state = 'PAUSED';
+          cancelAnimationFrame(animationFrameId);
+          mainBtn.innerHTML = '<i class="fas fa-play"></i>';
+          quickAdds.classList.remove('active');
+          document.title = `Paused - Timer`;
+        } 
+        else if (state === 'PAUSED') {
+          state = 'RUNNING';
+          endTime = Date.now() + timeRemaining;
+          mainBtn.innerHTML = '<i class="fas fa-pause"></i>';
+          quickAdds.classList.add('active');
+          tick();
+        }
+        else if (state === 'RINGING') {
+          stopAlarm();
+        }
+      }
+
+      function stopTimer() {
+        state = 'IDLE';
+        cancelAnimationFrame(animationFrameId);
+        stopAlarm();
+        
+        // Reset Visuals
+        timeRemaining = totalDuration;
+        timeDisplay.textContent = formatTimeMs(timeRemaining);
+        document.title = 'Premium Timer';
+        updateRing(100);
+        ringProgress.style.stroke = "url(#gradient)";
+        timeDisplay.style.color = "var(--text-main)";
+        
+        timeDisplay.classList.add('idle');
+        quickAdds.classList.remove('active');
+        resetBtn.classList.add('hidden');
+        mainBtn.className = 'btn-main'; // remove pulse
+        mainBtn.innerHTML = '<i class="fas fa-play"></i>';
+        
+        if (document.pictureInPictureElement) drawPiPCanvas(100, formatTimeMs(timeRemaining));
+      }
+
+      function triggerAlarm() {
+        state = 'RINGING';
+        quickAdds.classList.remove('active');
+        mainBtn.innerHTML = '<i class="fas fa-bell-slash"></i>';
+        mainBtn.classList.add('stop-pulse');
+        
+        // Play Audio
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log("Audio blocked by browser. User interaction needed."));
+      }
+
+      function stopAlarm() {
+        if(state === 'RINGING') {
+          audio.pause();
+          audio.currentTime = 0;
+          stopTimer();
+        }
+      }
+
+      // Exported for inline HTML onclick
+      window.addTime = function(seconds) {
+        if (state !== 'RUNNING' && state !== 'PAUSED') return;
+        const msToAdd = seconds * 1000;
+        timeRemaining += msToAdd;
+        totalDuration += msToAdd; // increase total to fix ring scale
+        endTime += msToAdd;
+        
+        // Revert colors if adding time pulls us out of danger zone
+        ringProgress.style.stroke = "url(#gradient)";
+        timeDisplay.style.color = "var(--text-main)";
+        
+        if (state === 'PAUSED') {
+           timeDisplay.textContent = formatTimeMs(timeRemaining);
+           updateRing((timeRemaining / totalDuration) * 100);
+        }
+      };
+
+      // Button Listeners
+      mainBtn.addEventListener('click', toggleTimer);
+      resetBtn.addEventListener('click', stopTimer);
+      
+      // Keyboard Shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' && e.target.id !== 'hidden-input') return;
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleTimer();
+        } else if (e.key.toLowerCase() === 'r') {
+          stopTimer();
+        }
+      });
+
+      // ----- SETTINGS PANEL -----
+      settingsBtn.addEventListener('click', () => settingsPanel.classList.add('open'));
+      closeSettings.addEventListener('click', () => settingsPanel.classList.remove('open'));
+
+      // ----- PICTURE IN PICTURE (PiP) -----
+      let pipStream = null;
+      
+      function drawPiPCanvas(percent, text) {
+        // Clear
+        ctx.fillStyle = '#09090b';
+        ctx.fillRect(0, 0, 400, 400);
+
+        // Draw BG Ring
+        ctx.beginPath();
+        ctx.arc(200, 200, 180, 0, 2 * Math.PI);
+        ctx.lineWidth = 15;
+        ctx.strokeStyle = '#18181b';
+        ctx.stroke();
+
+        // Draw Progress Ring
+        const endAngle = (2 * Math.PI) * (percent / 100) - (Math.PI / 2);
+        ctx.beginPath();
+        ctx.arc(200, 200, 180, -Math.PI / 2, endAngle, true); // true = anti-clockwise to shrink
+        ctx.lineWidth = 15;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = (timeRemaining <= 10000) ? '#ef4444' : '#6366f1';
+        if (percent > 0) ctx.stroke();
+
+        // Draw Text
+        ctx.fillStyle = (timeRemaining <= 10000 && percent > 0) ? '#ef4444' : '#ffffff';
+        ctx.font = 'bold 80px "Space Grotesk", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, 200, 200);
+      }
+
+      pipBtn.addEventListener('click', async () => {
+        if (!('pictureInPictureEnabled' in document)) {
+          alert('Picture-in-Picture is not supported in your browser.');
+          return;
+        }
+
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+          return;
+        }
+
+        try {
+          if (!pipStream) {
+            pipStream = canvas.captureStream(30); // 30 FPS
+            video.srcObject = pipStream;
+            await video.play();
+          }
+          drawPiPCanvas(totalDuration > 0 ? (timeRemaining / totalDuration) * 100 : 100, timeDisplay.textContent);
+          await video.requestPictureInPicture();
+        } catch (error) {
+          console.error('PiP Error:', error);
+          alert('Could not start Picture-in-Picture mode.');
+        }
+      });
+      
+      // Init Display
+      updateDisplayFromDigits();
+    });
+  </script>
+</body>
+</html>
